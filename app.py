@@ -6,7 +6,9 @@ does one arithmetic operation, and returns the result as plain text.
 Example:  http://localhost:8000/add?a=3&b=4   ->   3.0 + 4.0 = 7.0
 """
 
+
 from flask import Flask, request
+from werkzeug.exceptions import HTTPException, BadRequest
 
 app = Flask(__name__)
 
@@ -14,24 +16,30 @@ app = Flask(__name__)
 def get_numbers():
     """Read `a` and `b` from the query string and convert them to floats.
 
-    Raises ValueError if either parameter is missing or not a number.
+    Raises BadRequest if either parameter is missing or not a number.
     """
     a = request.args.get("a")
     b = request.args.get("b")
     if a is None or b is None:
-        raise ValueError("Please supply both parameters, e.g. ?a=3&b=4")
-    return float(a), float(b)
+        raise BadRequest("Please supply both parameters, e.g. ?a=3&b=4")
+    try:
+        return float(a), float(b)
+    except (ValueError, TypeError):
+        raise BadRequest(f"Invalid numeric value(s)")
 
 
 def get_single_number():
     """Read `a` from the query string and convert it to a float.
 
-    Raises ValueError if the parameter is missing or not a number.
+    Raises BadRequest if the parameter is missing or not a number.
     """
     a = request.args.get("a")
     if a is None:
-        raise ValueError("Please supply 'a', e.g. ?a=4")
-    return float(a)
+        raise BadRequest("Please supply 'a', e.g. ?a=4")
+    try:
+        return float(a)
+    except (ValueError, TypeError):
+        raise BadRequest("Invalid numeric value")
 
 
 @app.route("/")
@@ -102,7 +110,7 @@ def modulo():
     return f"{a} % {b} = {result}"
 
 
-@app.errorhandler(ValueError)
+@app.errorhandler(HTTPException)
 def bad_input(error):
     return f"Bad input: {error}", 400
 
