@@ -109,6 +109,11 @@ def modulo():
     result = a % b
     return f"{a} % {b} = {result}"
 
+@app.route("/average")
+def average():
+    a, b = get_numbers()
+    result = (a + b) / 2
+    return f"The average of {a} and {b} is {result}"
 
 @app.errorhandler(HTTPException)
 def bad_input(error):
